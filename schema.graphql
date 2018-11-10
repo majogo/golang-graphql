@@ -22,6 +22,7 @@ enum Genre {
 }
 
 type Disc {
+    artistName: String!
     name: String!
     year: Int!
 }
