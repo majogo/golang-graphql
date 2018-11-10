@@ -8,11 +8,20 @@ import (
 
 type Resolver struct{}
 
+func (r *Resolver) Artist() ArtistResolver {
+	return &artistResolver{r}
+}
 func (r *Resolver) Mutation() MutationResolver {
 	return &mutationResolver{r}
 }
 func (r *Resolver) Query() QueryResolver {
 	return &queryResolver{r}
+}
+
+type artistResolver struct{ *Resolver }
+
+func (r *artistResolver) OwnDiscs(ctx context.Context, obj *Artist) ([]Disc, error) {
+	panic("not implemented")
 }
 
 type mutationResolver struct{ *Resolver }
