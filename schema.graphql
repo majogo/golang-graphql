@@ -1,0 +1,19 @@
+type Query {
+    artists: [Artist!]!
+    artist(name: String!): Artist!
+}
+
+type Mutation {
+    createArtist(name: String!, genre: Genre): Artist!
+    deleteArtist(name: String!): String!
+}
+
+type Artist {
+    name: String!
+    genre: Genre
+}
+
+enum Genre {
+    Pop
+    Rock
+}
