@@ -36,3 +36,10 @@ func (r *queryResolver) Artists(ctx context.Context) ([]Artist, error) {
 func (r *queryResolver) Artist(ctx context.Context, name string) (Artist, error) {
 	return artistRepositoryInstance.FindByName(name)
 }
+
+func (r *queryResolver) Discs(ctx context.Context) ([]Disc, error) {
+	panic("not implemented")
+}
+func (r *queryResolver) Disc(ctx context.Context, name string) (Disc, error) {
+	panic("not implemented")
+}
