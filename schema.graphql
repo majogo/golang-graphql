@@ -1,6 +1,8 @@
 type Query {
     artists: [Artist!]!
     artist(name: String!): Artist!
+    discs: [Disc!]!
+    disc(name: String!): Disc!
 }
 
 type Mutation {
@@ -11,9 +13,15 @@ type Mutation {
 type Artist {
     name: String!
     genre: Genre
+    ownDiscs: [Disc!]!
 }
 
 enum Genre {
     Pop
     Rock
+}
+
+type Disc {
+    name: String!
+    year: Int!
 }
