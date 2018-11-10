@@ -39,8 +39,14 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Artist struct {
-		Name  func(childComplexity int) int
-		Genre func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Genre    func(childComplexity int) int
+		OwnDiscs func(childComplexity int) int
+	}
+
+	Disc struct {
+		Name func(childComplexity int) int
+		Year func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -51,6 +57,8 @@ type ComplexityRoot struct {
 	Query struct {
 		Artists func(childComplexity int) int
 		Artist  func(childComplexity int, name string) int
+		Discs   func(childComplexity int) int
+		Disc    func(childComplexity int, name string) int
 	}
 }
 
@@ -61,6 +69,8 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Artists(ctx context.Context) ([]Artist, error)
 	Artist(ctx context.Context, name string) (Artist, error)
+	Discs(ctx context.Context) ([]Disc, error)
+	Disc(ctx context.Context, name string) (Disc, error)
 }
 
 func field_Mutation_createArtist_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -108,6 +118,21 @@ func field_Mutation_deleteArtist_args(rawArgs map[string]interface{}) (map[strin
 }
 
 func field_Query_artist_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+
+}
+
+func field_Query_disc_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["name"]; ok {
@@ -194,6 +219,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Artist.Genre(childComplexity), true
 
+	case "Artist.ownDiscs":
+		if e.complexity.Artist.OwnDiscs == nil {
+			break
+		}
+
+		return e.complexity.Artist.OwnDiscs(childComplexity), true
+
+	case "Disc.name":
+		if e.complexity.Disc.Name == nil {
+			break
+		}
+
+		return e.complexity.Disc.Name(childComplexity), true
+
+	case "Disc.year":
+		if e.complexity.Disc.Year == nil {
+			break
+		}
+
+		return e.complexity.Disc.Year(childComplexity), true
+
 	case "Mutation.createArtist":
 		if e.complexity.Mutation.CreateArtist == nil {
 			break
@@ -236,6 +282,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Artist(childComplexity, args["name"].(string)), true
+
+	case "Query.discs":
+		if e.complexity.Query.Discs == nil {
+			break
+		}
+
+		return e.complexity.Query.Discs(childComplexity), true
+
+	case "Query.disc":
+		if e.complexity.Query.Disc == nil {
+			break
+		}
+
+		args, err := field_Query_disc_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Disc(childComplexity, args["name"].(string)), true
 
 	}
 	return 0, false
@@ -304,6 +369,11 @@ func (ec *executionContext) _Artist(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "genre":
 			out.Values[i] = ec._Artist_genre(ctx, field, obj)
+		case "ownDiscs":
+			out.Values[i] = ec._Artist_ownDiscs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -368,6 +438,155 @@ func (ec *executionContext) _Artist_genre(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	return *res
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Artist_ownDiscs(ctx context.Context, field graphql.CollectedField, obj *Artist) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "Artist",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OwnDiscs, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]Disc)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: &res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				return ec._Disc(ctx, field.Selections, &res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
+var discImplementors = []string{"Disc"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Disc(ctx context.Context, sel ast.SelectionSet, obj *Disc) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, discImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Disc")
+		case "name":
+			out.Values[i] = ec._Disc_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "year":
+			out.Values[i] = ec._Disc_year(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Disc_name(ctx context.Context, field graphql.CollectedField, obj *Disc) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "Disc",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Disc_year(ctx context.Context, field graphql.CollectedField, obj *Disc) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "Disc",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Year, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalInt(res)
 }
 
 var mutationImplementors = []string{"Mutation"}
@@ -513,6 +732,24 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				wg.Done()
 			}(i, field)
+		case "discs":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_discs(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
+		case "disc":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_disc(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -620,6 +857,100 @@ func (ec *executionContext) _Query_artist(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
 	return ec._Artist(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_discs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Discs(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]Disc)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: &res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				return ec._Disc(ctx, field.Selections, &res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_disc(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_disc_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Disc(rctx, args["name"].(string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(Disc)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	return ec._Disc(ctx, field.Selections, &res)
 }
 
 // nolint: vetshadow
@@ -2150,6 +2481,8 @@ var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "schema.graphql", Input: `type Query {
     artists: [Artist!]!
     artist(name: String!): Artist!
+    discs: [Disc!]!
+    disc(name: String!): Disc!
 }
 
 type Mutation {
@@ -2160,10 +2493,16 @@ type Mutation {
 type Artist {
     name: String!
     genre: Genre
+    ownDiscs: [Disc!]!
 }
 
 enum Genre {
     Pop
     Rock
+}
+
+type Disc {
+    name: String!
+    year: Int!
 }`},
 )
