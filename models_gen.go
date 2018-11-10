@@ -8,12 +8,6 @@ import (
 	strconv "strconv"
 )
 
-type Artist struct {
-	Name     string `json:"name"`
-	Genre    *Genre `json:"genre"`
-	OwnDiscs []Disc `json:"ownDiscs"`
-}
-
 type Disc struct {
 	Name string `json:"name"`
 	Year int    `json:"year"`
