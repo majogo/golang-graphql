@@ -1,0 +1,28 @@
+hash: ba0e126fa0f68f98d896fc69afd947cb932b4dc59113f367ff976b5cf892bc06
+updated: 2018-11-10T21:33:11.924298+01:00
+imports:
+- name: github.com/99designs/gqlgen
+  version: 4bda3bc1291bdc0bc44e3057b5229d987eeecde2
+  subpackages:
+  - complexity
+  - graphql
+  - graphql/introspection
+  - handler
+- name: github.com/agnivade/levenshtein
+  version: 03c9ac5095b009a64400e3e143ee29d1f1dec854
+- name: github.com/gorilla/websocket
+  version: 483fb8d7c32fcb4b5636cd293a92e3935932e2f4
+- name: github.com/hashicorp/golang-lru
+  version: 20f1fb78b0740ba8c3cb143a61e86ba5c8669768
+  subpackages:
+  - simplelru
+- name: github.com/vektah/gqlparser
+  version: 07406bbdde4196e396e2f40c24defe84e9243ad5
+  subpackages:
+  - ast
+  - gqlerror
+  - lexer
+  - parser
+  - validator
+  - validator/rules
+testImports: []

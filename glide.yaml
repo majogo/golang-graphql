@@ -1,0 +1,10 @@
+package: github.com/majogo/golang-graphql
+import:
+- package: github.com/99designs/gqlgen
+  subpackages:
+  - graphql
+  - graphql/introspection
+  - handler
+- package: github.com/vektah/gqlparser
+  subpackages:
+  - ast
