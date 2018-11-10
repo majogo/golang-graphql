@@ -9,8 +9,9 @@ import (
 )
 
 type Disc struct {
-	Name string `json:"name"`
-	Year int    `json:"year"`
+	ArtistName string `json:"artistName"`
+	Name       string `json:"name"`
+	Year       int    `json:"year"`
 }
 
 type Genre string

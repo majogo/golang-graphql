@@ -46,8 +46,9 @@ type ComplexityRoot struct {
 	}
 
 	Disc struct {
-		Name func(childComplexity int) int
-		Year func(childComplexity int) int
+		ArtistName func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Year       func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -229,6 +230,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Artist.OwnDiscs(childComplexity), true
+
+	case "Disc.artistName":
+		if e.complexity.Disc.ArtistName == nil {
+			break
+		}
+
+		return e.complexity.Disc.ArtistName(childComplexity), true
 
 	case "Disc.name":
 		if e.complexity.Disc.Name == nil {
@@ -523,6 +531,11 @@ func (ec *executionContext) _Disc(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Disc")
+		case "artistName":
+			out.Values[i] = ec._Disc_artistName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "name":
 			out.Values[i] = ec._Disc_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -542,6 +555,33 @@ func (ec *executionContext) _Disc(ctx context.Context, sel ast.SelectionSet, obj
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Disc_artistName(ctx context.Context, field graphql.CollectedField, obj *Disc) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "Disc",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ArtistName, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
 }
 
 // nolint: vetshadow
@@ -2511,6 +2551,7 @@ enum Genre {
 }
 
 type Disc {
+    artistName: String!
     name: String!
     year: Int!
 }`},
