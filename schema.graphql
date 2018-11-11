@@ -3,6 +3,8 @@ type Query {
     artist(name: String!): Artist!
     discs: [Disc!]!
     disc(name: String!): Disc!
+    tracks: [Track!]!
+    track(name: String!): Track!
 }
 
 type Mutation {
@@ -25,4 +27,12 @@ type Disc {
     artistName: String!
     name: String!
     year: Int!
+    containingTracks: [Track!]!
+}
+
+type Track {
+    artistName: String!
+    discName: String!
+    name: String!
+    duration: Int
 }
