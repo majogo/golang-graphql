@@ -42,6 +42,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Artist struct {
 		Name     func(childComplexity int) int
+		Age      func(childComplexity int) int
 		Genre    func(childComplexity int) int
 		OwnDiscs func(childComplexity int) int
 	}
@@ -76,6 +77,8 @@ type ComplexityRoot struct {
 }
 
 type ArtistResolver interface {
+	Age(ctx context.Context, obj *Artist) (int, error)
+
 	OwnDiscs(ctx context.Context, obj *Artist) ([]Disc, error)
 }
 type DiscResolver interface {
@@ -247,6 +250,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Artist.Name(childComplexity), true
+
+	case "Artist.age":
+		if e.complexity.Artist.Age == nil {
+			break
+		}
+
+		return e.complexity.Artist.Age(childComplexity), true
 
 	case "Artist.genre":
 		if e.complexity.Artist.Genre == nil {
@@ -465,6 +475,15 @@ func (ec *executionContext) _Artist(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "age":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Artist_age(ctx, field, obj)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		case "genre":
 			out.Values[i] = ec._Artist_genre(ctx, field, obj)
 		case "ownDiscs":
@@ -512,6 +531,29 @@ func (ec *executionContext) _Artist_name(ctx context.Context, field graphql.Coll
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return graphql.MarshalString(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Artist_age(ctx context.Context, field graphql.CollectedField, obj *Artist) graphql.Marshaler {
+	rctx := &graphql.ResolverContext{
+		Object: "Artist",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Artist().Age(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	return graphql.MarshalInt(res)
 }
 
 // nolint: vetshadow
@@ -2961,6 +3003,7 @@ type Mutation {
 
 type Artist {
     name: String!
+    age: Int!
     genre: Genre
     ownDiscs: [Disc!]!
 }

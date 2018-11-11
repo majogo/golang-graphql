@@ -14,6 +14,7 @@ type Mutation {
 
 type Artist {
     name: String!
+    age: Int!
     genre: Genre
     ownDiscs: [Disc!]!
 }

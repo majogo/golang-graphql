@@ -27,6 +27,13 @@ func (r *artistResolver) OwnDiscs(ctx context.Context, obj *Artist) ([]Disc, err
 	return discRepositoryInstance.FindByArtistName(obj.Name)
 }
 
+func (r *artistResolver) Age(ctx context.Context, obj *Artist) (int, error) {
+	if obj.Name == "U2" {
+		return 42, nil
+	}
+	return 23, nil
+}
+
 type discResolver struct{ *Resolver }
 
 func (r *discResolver) ContainingTracks(ctx context.Context, obj *Disc) ([]Track, error) {
