@@ -30,7 +30,7 @@ func (r *artistResolver) OwnDiscs(ctx context.Context, obj *Artist) ([]Disc, err
 type discResolver struct{ *Resolver }
 
 func (r *discResolver) ContainingTracks(ctx context.Context, obj *Disc) ([]Track, error) {
-	panic("not implemented")
+	return trackRepositoryInstance.FindByDiscName(obj.Name)
 }
 
 type mutationResolver struct{ *Resolver }
