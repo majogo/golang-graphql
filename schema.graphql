@@ -36,4 +36,5 @@ type Track {
     discName: String!
     name: String!
     duration: Int
+    trackArtist: Artist!
 }
