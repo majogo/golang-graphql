@@ -12,6 +12,18 @@ func init() {
 	discRepositoryInstance = discRepository{
 		discs: make([]Disc, 0),
 	}
+	_, err := discRepositoryInstance.Add("U2", "The Joshua Tree", 1987)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding U2 - The Joshua Tree to discs: '%v'", err))
+	}
+	_, err = discRepositoryInstance.Add("U2", "The Unforgettable Fire", 1984)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding U2- The Unforgettable Fire to discs: '%v'", err))
+	}
+	_, err = discRepositoryInstance.Add("Snap", "The Madman's Return", 1992)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding Snap- The Madman's Return: '%v'", err))
+	}
 }
 
 func (repository *discRepository) Add(artistName, name string, year int) (Disc, error) {
