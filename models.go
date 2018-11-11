@@ -10,3 +10,10 @@ type Disc struct {
 	Name             string  `json:"name"`
 	Year             int     `json:"year"`
 }
+
+type Track struct {
+	ArtistName string `json:"artistName"`
+	DiscName   string `json:"discName"`
+	Name       string `json:"name"`
+	Duration   *int   `json:"duration"`
+}

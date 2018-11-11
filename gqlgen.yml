@@ -17,3 +17,5 @@ models:
     model: github.com/majogo/golang-graphql.Artist
   Disc:
     model: github.com/majogo/golang-graphql.Disc
+  Track:
+    model: github.com/majogo/golang-graphql.Track
