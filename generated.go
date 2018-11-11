@@ -31,6 +31,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Artist() ArtistResolver
+	Disc() DiscResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -76,6 +77,9 @@ type ComplexityRoot struct {
 
 type ArtistResolver interface {
 	OwnDiscs(ctx context.Context, obj *Artist) ([]Disc, error)
+}
+type DiscResolver interface {
+	ContainingTracks(ctx context.Context, obj *Disc) ([]Track, error)
 }
 type MutationResolver interface {
 	CreateArtist(ctx context.Context, name string, genre *Genre) (Artist, error)
@@ -604,6 +608,7 @@ var discImplementors = []string{"Disc"}
 func (ec *executionContext) _Disc(ctx context.Context, sel ast.SelectionSet, obj *Disc) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, discImplementors)
 
+	var wg sync.WaitGroup
 	out := graphql.NewOrderedMap(len(fields))
 	invalid := false
 	for i, field := range fields {
@@ -628,15 +633,19 @@ func (ec *executionContext) _Disc(ctx context.Context, sel ast.SelectionSet, obj
 				invalid = true
 			}
 		case "containingTracks":
-			out.Values[i] = ec._Disc_containingTracks(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Disc_containingTracks(ctx, field, obj)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-
+	wg.Wait()
 	if invalid {
 		return graphql.Null
 	}
@@ -737,7 +746,7 @@ func (ec *executionContext) _Disc_containingTracks(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ContainingTracks, nil
+		return ec.resolvers.Disc().ContainingTracks(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
