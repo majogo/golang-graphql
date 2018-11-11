@@ -21,7 +21,7 @@ func (r *Resolver) Query() QueryResolver {
 type artistResolver struct{ *Resolver }
 
 func (r *artistResolver) OwnDiscs(ctx context.Context, obj *Artist) ([]Disc, error) {
-	panic("not implemented")
+	return discRepositoryInstance.FindByArtistName(obj.Name)
 }
 
 type mutationResolver struct{ *Resolver }
@@ -47,8 +47,8 @@ func (r *queryResolver) Artist(ctx context.Context, name string) (Artist, error)
 }
 
 func (r *queryResolver) Discs(ctx context.Context) ([]Disc, error) {
-	panic("not implemented")
+	return discRepositoryInstance.FindAll()
 }
 func (r *queryResolver) Disc(ctx context.Context, name string) (Disc, error) {
-	panic("not implemented")
+	return discRepositoryInstance.FindByName(name)
 }
