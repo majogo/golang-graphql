@@ -12,6 +12,24 @@ func init() {
 	trackRepositoryInstance = trackRepository{
 		tracks: make([]Track, 0),
 	}
+	_, err := trackRepositoryInstance.Add("Where The Streets Have No Name", "The Joshua Tree", "U2", nil)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding U2 - Where the streets have no name to tracks: '%v'", err))
+	}
+	durationImStillHaventFound := 277
+	_, err = trackRepositoryInstance.Add("I Still Haven't Found What I'm Looking For", "The Joshua Tree", "U2", &durationImStillHaventFound)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding U2 - I still haven't found to tracks: '%v'", err))
+	}
+	_, err = trackRepositoryInstance.Add("The Unforgettable Fire", "The Unforgettable Fire", "U2", nil)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding U2 - The Unforgettable Fire to tracks: '%v'", err))
+	}
+	durationRhythmIsADancer := 332
+	_, err = trackRepositoryInstance.Add("Rhythm Is A Dancer", "The Madman's Return", "Snap", &durationRhythmIsADancer)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding Snap - Rhythm Is A Dancer to tracks: '%v'", err))
+	}
 }
 
 func (repository *trackRepository) Add(name string, discName, artistName string, duration *int) (Track, error) {
