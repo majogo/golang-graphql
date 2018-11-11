@@ -15,3 +15,5 @@ resolver:
 models:
   Artist:
     model: github.com/majogo/golang-graphql.Artist
+  Disc:
+    model: github.com/majogo/golang-graphql.Disc
