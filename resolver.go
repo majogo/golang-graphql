@@ -54,9 +54,9 @@ func (r *queryResolver) Disc(ctx context.Context, name string) (Disc, error) {
 }
 
 func (r *queryResolver) Tracks(ctx context.Context) ([]Track, error) {
-	panic("not implemented")
+	return trackRepositoryInstance.FindAll()
 }
 
 func (r *queryResolver) Track(ctx context.Context, name string) (Track, error) {
-	panic("not implemented")
+	return trackRepositoryInstance.FindByName(name)
 }
