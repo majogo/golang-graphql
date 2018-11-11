@@ -12,6 +12,18 @@ func init() {
 	artistRepositoryInstance = artistRepository{
 		artists: make([]Artist, 0),
 	}
+	var rock Genre
+	rock = GenreRock
+	var pop Genre
+	pop = GenrePop
+	_, err := artistRepositoryInstance.Add("U2", &rock)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding U2 to artists: '%v'", err))
+	}
+	_, err = artistRepositoryInstance.Add("Snap", &pop)
+	if err != nil {
+		fmt.Println(fmt.Printf("Error during adding Snap to artists: '%v'", err))
+	}
 }
 
 func (repository *artistRepository) Add(name string, genre *Genre) (Artist, error) {
