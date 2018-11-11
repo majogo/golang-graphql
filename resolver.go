@@ -14,6 +14,9 @@ func (r *Resolver) Artist() ArtistResolver {
 func (r *Resolver) Disc() DiscResolver {
 	return &discResolver{r}
 }
+func (r *Resolver) Track() TrackResolver {
+	return &trackResolver{r}
+}
 func (r *Resolver) Mutation() MutationResolver {
 	return &mutationResolver{r}
 }
@@ -38,6 +41,12 @@ type discResolver struct{ *Resolver }
 
 func (r *discResolver) ContainingTracks(ctx context.Context, obj *Disc) ([]Track, error) {
 	return trackRepositoryInstance.FindByDiscName(obj.Name)
+}
+
+type trackResolver struct{ *Resolver }
+
+func (r *trackResolver) TrackArtist(ctx context.Context, obj *Track) (Artist, error) {
+	panic("not implemented")
 }
 
 type mutationResolver struct{ *Resolver }
