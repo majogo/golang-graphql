@@ -34,6 +34,7 @@ type ResolverRoot interface {
 	Disc() DiscResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Track() TrackResolver
 }
 
 type DirectiveRoot struct {
@@ -69,10 +70,11 @@ type ComplexityRoot struct {
 	}
 
 	Track struct {
-		ArtistName func(childComplexity int) int
-		DiscName   func(childComplexity int) int
-		Name       func(childComplexity int) int
-		Duration   func(childComplexity int) int
+		ArtistName  func(childComplexity int) int
+		DiscName    func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Duration    func(childComplexity int) int
+		TrackArtist func(childComplexity int) int
 	}
 }
 
@@ -95,6 +97,9 @@ type QueryResolver interface {
 	Disc(ctx context.Context, name string) (Disc, error)
 	Tracks(ctx context.Context) ([]Track, error)
 	Track(ctx context.Context, name string) (Track, error)
+}
+type TrackResolver interface {
+	TrackArtist(ctx context.Context, obj *Track) (Artist, error)
 }
 
 func field_Mutation_createArtist_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -409,6 +414,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Track.Duration(childComplexity), true
 
+	case "Track.trackArtist":
+		if e.complexity.Track.TrackArtist == nil {
+			break
+		}
+
+		return e.complexity.Track.TrackArtist(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -535,12 +547,15 @@ func (ec *executionContext) _Artist_name(ctx context.Context, field graphql.Coll
 
 // nolint: vetshadow
 func (ec *executionContext) _Artist_age(ctx context.Context, field graphql.CollectedField, obj *Artist) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
 	rctx := &graphql.ResolverContext{
 		Object: "Artist",
 		Args:   nil,
 		Field:  field,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Artist().Age(rctx, obj)
@@ -553,6 +568,7 @@ func (ec *executionContext) _Artist_age(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(int)
 	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return graphql.MarshalInt(res)
 }
 
@@ -1381,6 +1397,7 @@ var trackImplementors = []string{"Track"}
 func (ec *executionContext) _Track(ctx context.Context, sel ast.SelectionSet, obj *Track) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, trackImplementors)
 
+	var wg sync.WaitGroup
 	out := graphql.NewOrderedMap(len(fields))
 	invalid := false
 	for i, field := range fields {
@@ -1406,11 +1423,20 @@ func (ec *executionContext) _Track(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "duration":
 			out.Values[i] = ec._Track_duration(ctx, field, obj)
+		case "trackArtist":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Track_trackArtist(ctx, field, obj)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
-
+	wg.Wait()
 	if invalid {
 		return graphql.Null
 	}
@@ -1524,6 +1550,34 @@ func (ec *executionContext) _Track_duration(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	return graphql.MarshalInt(*res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Track_trackArtist(ctx context.Context, field graphql.CollectedField, obj *Track) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer ec.Tracer.EndFieldExecution(ctx)
+	rctx := &graphql.ResolverContext{
+		Object: "Track",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Track().TrackArtist(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(Artist)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	return ec._Artist(ctx, field.Selections, &res)
 }
 
 var __DirectiveImplementors = []string{"__Directive"}
@@ -3025,5 +3079,6 @@ type Track {
     discName: String!
     name: String!
     duration: Int
+    trackArtist: Artist!
 }`},
 )
